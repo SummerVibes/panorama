@@ -1,0 +1,14 @@
+{
+  "name": "host1",
+  "computing_power": 100000,
+  "device_type": "PC",
+  "ability": {
+    "component": [
+      "Camera",
+      "Loudspeaker",
+      "Screen"
+    ]
+  },
+  "battery": 100,
+  "ip": "192.168.0.1"
+}

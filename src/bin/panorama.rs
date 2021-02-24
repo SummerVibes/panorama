@@ -1,10 +1,14 @@
-use clap::{App, Arg};
-use std::io::stdin;
-use std::path::Path;
+#[macro_use]
+extern crate log;
+
 use std::{env, fs};
-use std::net::{TcpListener, SocketAddrV4, IpAddr, TcpStream};
-use anyhow::{Result, Error};
-use std::time::Duration;
+use std::io::stdin;
+use std::net::{IpAddr, SocketAddrV4, TcpListener, TcpStream};
+use std::path::Path;
+use clap::{App, Arg};
+use panorama::bus::device::Device;
+use panorama::bus::Bus;
+use std::collections::HashMap;
 
 fn main() {
     env::set_var("RUST_LOG", "info");
@@ -16,10 +20,9 @@ fn main() {
         .arg(Arg::new("DEVICE_CONFIG_FILE").required(true)).get_matches();
     let file_path = matches.value_of("DEVICE_CONFIG_FILE");
     info!("{}", file_path.unwrap());
-    //TODO read device description file
-    fs::read_to_string(file_path);
+    //TODO read device description file;
 
-
+    // fs::read_to_string(file_path);
     //TODO scan all device in the local network
     loop {
         let mut input = String::new();

@@ -1,14 +1,14 @@
-#![deny(missing_docs)]
+// #![deny(missing_docs)]
 //! A simple distributed task scheduling system
-#[macro_use]
-extern crate log;
+
 #[macro_use]
 extern crate anyhow;
+#[macro_use]
+extern crate log;
 
 pub use anyhow::Result;
 
-mod schedule;
-mod data;
-mod bus;
-mod error;
-pub mod common;
+pub mod schedule;
+pub mod data;
+pub mod bus;
+pub mod error;
