@@ -2,28 +2,36 @@
 extern crate log;
 
 use std::{env, fs};
+use std::collections::HashMap;
 use std::io::stdin;
 use std::net::{IpAddr, SocketAddrV4, TcpListener, TcpStream};
 use std::path::Path;
+use std::sync::{Arc, Mutex};
+
 use clap::{App, Arg};
+
+use panorama::bus::{Bus};
 use panorama::bus::device::Device;
-use panorama::bus::Bus;
-use std::collections::HashMap;
 
 fn main() {
-    env::set_var("RUST_LOG", "info");
+    env::set_var("RUST_LOG", "error");
     env_logger::init();
     let matches = App::new(env!("CARGO_PKG_NAME"))
         .version(env!("CARGO_PKG_VERSION"))
         .author(env!("CARGO_PKG_AUTHORS"))
         .about(env!("CARGO_PKG_DESCRIPTION"))
         .arg(Arg::new("DEVICE_CONFIG_FILE").required(true)).get_matches();
-    let file_path = matches.value_of("DEVICE_CONFIG_FILE");
-    info!("{}", file_path.unwrap());
-    //TODO read device description file;
+    let file_path = matches.value_of("DEVICE_CONFIG_FILE").unwrap();
+    info!("{}", file_path);
 
-    // fs::read_to_string(file_path);
-    //TODO scan all device in the local network
+
+    /// scan all device in the local network
+    let map = Arc::new(Mutex::new(HashMap::new()));
+    let bus = Bus::new(map.clone());
+    let mut device = bus.get_device_from_file(file_path).unwrap();
+    bus.scan_device(device);
+
+    ///TODO make scan_device and input separated
     loop {
         let mut input = String::new();
         stdin().read_line(&mut input).unwrap();
@@ -31,6 +39,13 @@ fn main() {
         let command = parts.next().unwrap();
         let args = parts;
         match command {
+            "show" => {
+                let map = map.lock().unwrap();
+                println!("Total of {} device", map.len());
+                for i in map.iter() {
+                    println!("{:?}",i);
+                }
+            },
             "run" => {
                 let mut peekable = args.peekable();
                 let new_dir = peekable.peek().unwrap();
@@ -42,13 +57,13 @@ fn main() {
                     .map_or("/", |x| *x);
                 let root = Path::new(new_dir);
                 if let Err(e) = env::set_current_dir(&root) {
-                    eprintln!("{}", e);
+                    error!("{}", e);
                 }
             }
             "quit" | "exit" | "q" => {
                 return;
             }
-            _ => { error!("No such command") }
+            _ => { println!("No such command") }
         }
     }
 }

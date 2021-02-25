@@ -21,3 +21,11 @@ fn json_to_struct(){
     let d:Device = serde_json::from_str(str.as_str()).unwrap();
     println!("{:?}",d);
 }
+#[test]
+fn print_test(){
+    for i in 1..10{
+        print!("{}",i);
+        print!("{}[2J", 27 as char);
+        print!{"sdfas"};
+    }
+}
