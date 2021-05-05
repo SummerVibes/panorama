@@ -1,0 +1,44 @@
+version: "3.9"  # optional since v1.27.0
+services:
+  treadmill:
+    image: arm64v8/rust:latest
+#    build: .
+    ports:
+      - "9000"
+      - "8888"
+      - "8889"
+    volumes:
+      - ".:/panorama"
+    command: /panorama/panorama Treadmill
+    # all program live in same network
+    networks:
+      panorama:
+  sport:
+    image: arm64v8/rust:latest
+    #    build: .
+    ports:
+      - "9000"
+      - "8888"
+      - "8889"
+    volumes:
+      - ".:/panorama"
+    command: /panorama/panorama SportsBracelet
+    # all program live in same network
+    networks:
+      panorama:
+  phone:
+    image: arm64v8/rust:latest
+    #    build: .
+    ports:
+      - "9000:9000"
+      - "8888:8888"
+      - "8889:8889"
+    volumes:
+      - ".:/panorama"
+    command: /panorama/panorama Phone
+    # all program live in same network
+    networks:
+      panorama:
+networks:
+  panorama:
+    external: true

@@ -1,69 +1,46 @@
-#[macro_use]
-extern crate log;
+use clap::{App as ClapApp, Arg};
+use tracing::info;
+use tracing_subscriber::FmtSubscriber;
 
-use std::{env, fs};
-use std::collections::HashMap;
-use std::io::stdin;
-use std::net::{IpAddr, SocketAddrV4, TcpListener, TcpStream};
-use std::path::Path;
-use std::sync::{Arc, Mutex};
+use panorama::data::Node;
+use panorama::device::DeviceType;
+use actix_web::{HttpServer, App};
+use panorama::bus::HTTP_SERVICE_PORT;
+use std::thread;
+use panorama::schedule::ex_command;
+use futures::executor::block_on;
+use std::str::FromStr;
 
-use clap::{App, Arg};
+#[tracing::instrument]
+#[actix_web::main]
+async fn main(){
 
-use panorama::bus::{Bus};
-use panorama::bus::device::Device;
-
-fn main() {
-    env::set_var("RUST_LOG", "error");
-    env_logger::init();
-    let matches = App::new(env!("CARGO_PKG_NAME"))
+    let arg_name = "type";
+    let matches = ClapApp::new(env!("CARGO_PKG_NAME"))
         .version(env!("CARGO_PKG_VERSION"))
         .author(env!("CARGO_PKG_AUTHORS"))
         .about(env!("CARGO_PKG_DESCRIPTION"))
-        .arg(Arg::new("DEVICE_CONFIG_FILE").required(true)).get_matches();
-    let file_path = matches.value_of("DEVICE_CONFIG_FILE").unwrap();
-    info!("{}", file_path);
+        .arg(Arg::new(arg_name).required(true)).get_matches();
+    let arg_type = DeviceType::from_str(matches.value_of(arg_name).expect("The input is not a string"))
+        .expect("invalid device type");
 
+    // init tracing
+    let subscriber = FmtSubscriber::new();
+    tracing::subscriber::set_global_default(subscriber)
+        .expect("setting tracing default failed");
 
-    /// scan all device in the local network
-    let map = Arc::new(Mutex::new(HashMap::new()));
-    let bus = Bus::new(map.clone());
-    let mut device = bus.get_device_from_file(file_path).unwrap();
-    bus.scan_device(device);
-
-    ///TODO make scan_device and input separated
-    loop {
-        let mut input = String::new();
-        stdin().read_line(&mut input).unwrap();
-        let mut parts = input.trim().split_whitespace();
-        let command = parts.next().unwrap();
-        let args = parts;
-        match command {
-            "show" => {
-                let map = map.lock().unwrap();
-                println!("Total of {} device", map.len());
-                for i in map.iter() {
-                    println!("{:?}",i);
-                }
-            },
-            "run" => {
-                let mut peekable = args.peekable();
-                let new_dir = peekable.peek().unwrap();
-                info!("{}", new_dir);
-            }
-            //TODO cd and ls command should be complemented
-            "cd" => {
-                let new_dir = args.peekable().peek()
-                    .map_or("/", |x| *x);
-                let root = Path::new(new_dir);
-                if let Err(e) = env::set_current_dir(&root) {
-                    error!("{}", e);
-                }
-            }
-            "quit" | "exit" | "q" => {
-                return;
-            }
-            _ => { println!("No such command") }
-        }
-    }
+    // create and start the node
+    let mut node = Node::create(arg_type);
+    node.start().is_ok().then(|| info!("node started"));
+    //create a server
+    let device = node.device.clone();
+    let srv = HttpServer::new(move ||{
+        App::new().configure(|cfg| {device.get_service(cfg)})
+    }).bind(format!("{}:{}",node.addr.to_string(),HTTP_SERVICE_PORT)).unwrap().run();
+    // create another thread to handle request
+    thread::spawn(|| block_on(async{
+        info!("http server started");
+        srv.await.unwrap();
+    }));
+    ex_command(&mut node).await;
 }
