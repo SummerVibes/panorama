@@ -28,10 +28,10 @@ impl Node {
                 Box::new(Phone{abilities: vec![AllAbility::TakePhoto]})
             },
             DeviceType::Treadmill => {
-                Box::new(Treadmill{ abilities: vec![AllAbility::CollectBodyData] })
+                Box::new(Treadmill{ abilities: vec![AllAbility::CollectRunningData] })
             },
             DeviceType::SportsBracelet => {
-                Box::new(SportsBracelet{ abilities: vec![AllAbility::CollectRunningData] })
+                Box::new(SportsBracelet{ abilities: vec![AllAbility::CollectBodyData] })
             },
         };
 
