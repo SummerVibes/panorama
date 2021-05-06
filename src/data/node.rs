@@ -23,7 +23,6 @@ impl Node {
     pub fn create(device_type: DeviceType) -> Node{
 
         let self_ip = get_self_ip().unwrap();
-
         let device:Box<dyn Device + Send + Sync> = match device_type {
             DeviceType::Phone => {
                 Box::new(Phone{abilities: vec![AllAbility::TakePhoto]})
@@ -37,7 +36,8 @@ impl Node {
         };
 
         let id = utils::generate_node_id(self_ip.to_string());
-        let ip = SocketAddr::new(IpAddr::V4(Ipv4Addr::from_str(LOCAL_ADDRESS).unwrap()), GOSSIP_ADDRESS_PORT);
+        // let ip = SocketAddr::new(IpAddr::V4(Ipv4Addr::from_str(LOCAL_ADDRESS).unwrap()), GOSSIP_ADDRESS_PORT);
+        let ip = SocketAddr::new(self_ip, GOSSIP_ADDRESS_PORT);
         let service = GossipService::new_with_defaults(ip);
 
         Node{
