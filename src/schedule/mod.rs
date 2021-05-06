@@ -21,6 +21,7 @@ pub async fn ex_command(node: &mut Node) {
         match command {
             "show" => {
                 store.print();
+                println!("Peers:\n{:?}",node.service.peers());
             }
             "run" => {
                 let funcs: Vec<&str> = args.collect();

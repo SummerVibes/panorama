@@ -59,9 +59,6 @@ impl Node {
 
         // start the gossip service
         self.service.start(Box::new(|| Some(peers)), Box::new(self.store.clone())).unwrap();
-        //register service
-        self.register()?;
-        // start the http service
         Ok(())
     }
 
@@ -78,7 +75,8 @@ impl Node {
             self.store.remove(u.ability.clone(),u.url.clone());
         });
         self.service.submit(self.store.ser().into_bytes()).unwrap();
-        thread::sleep(Duration::from_secs(1));
+        //TODO how to make sure peers receive this.
+        thread::sleep(Duration::from_secs(3));
         self.service.shutdown();
     }
 }
@@ -105,10 +103,10 @@ impl AbilitiesStore {
 
     pub fn remove(&mut self, key: Ability, value: URL) {
         let map = self.map.lock().unwrap();
-        let rm_ctx = map.get(&key).derive_rm_ctx();
+        // let rm_ctx = map.get(&key).derive_rm_ctx();
         let read_ctx = map.get(&key).derive_add_ctx(self.id);
         let op = map.update(key,read_ctx,|set,_|{
-            set.rm(value,rm_ctx)
+            set.rm(value,set.read_ctx().derive_rm_ctx())
         });
         drop(map);
         let mut mut_map = self.map.lock().unwrap();
@@ -155,6 +153,26 @@ impl UpdateHandler for AbilitiesStore {
         let res: AbilitiesMap = serde_json::from_slice(update.content().as_slice()).unwrap();
         info!("receive update: {:?}", res);
         self.merge(res);
+    }
+}
+
+mod test{
+    use super::*;
+    #[test]
+    fn test_map(){
+        let mut store1 = AbilitiesStore::new(1);
+        let mut store2 = AbilitiesStore::new(2);
+        store1.insert(String::from("sfd"), String::from("sdfsdf"));
+        println!("{:?}", store1);
+
+        store2.merge((*store1.map.lock().unwrap()).clone());
+        store1.remove(String::from("sfd"), String::from("sdfsdf"));
+        store2.merge((*store1.map.lock().unwrap()).clone());
+        println!("{:?}", store1);
+        store1.insert(String::from("sfd"), String::from("sdfsdf"));
+        store2.merge((*store1.map.lock().unwrap()).clone());
+
+        println!("{:?}", store1);
     }
 }
 

@@ -42,5 +42,7 @@ async fn main(){
         info!("http server started");
         srv.await.unwrap();
     }));
+    //register service
+    node.register().unwrap();
     ex_command(&mut node).await;
 }
