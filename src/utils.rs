@@ -1,6 +1,6 @@
 use std::net::{IpAddr, UdpSocket};
-use pnet::datalink;
-use pnet::datalink::NetworkInterface;
+// use pnet::datalink;
+// use pnet::datalink::NetworkInterface;
 use crate::Result;
 use crypto::sha2::Sha256;
 use crypto::digest::Digest;
@@ -8,14 +8,14 @@ use crate::data::{AllAbility, UrlEntry};
 use crate::bus::HTTP_SERVICE_PORT;
 
 /// get lan interface, namely en0
-pub fn get_lan_interface() -> Result<NetworkInterface> {
-    for i in datalink::interfaces() {
-        if i.name.eq("en0") {
-            return Ok(i);
-        }
-    }
-    return Err(anyhow!("en0 interface no found"));
-}
+// pub fn get_lan_interface() -> Result<NetworkInterface> {
+//     for i in datalink::interfaces() {
+//         if i.name.eq("en0") {
+//             return Ok(i);
+//         }
+//     }
+//     return Err(anyhow!("en0 interface no found"));
+// }
 
 /// get local ip address in current LAN, this method need to connect to the network
 pub fn get_self_ip() -> Result<IpAddr> {
