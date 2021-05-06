@@ -4,7 +4,7 @@ use std::thread;
 
 use gossip::{Update, UpdateHandler};
 
-use crate::bus::{BROADCAST_RECV, BROADCAST_SEND, GOSSIP_ADDRESS, GOSSIP_ADDRESS_PORT};
+use crate::bus::{BROADCAST_RECV, BROADCAST_SEND, LOCAL_ADDRESS, GOSSIP_ADDRESS_PORT};
 use crate::bus::peer::{get_closest_peers, response_ping};
 use crate::device::DeviceType;
 use crate::device::phone::Phone;
@@ -37,7 +37,7 @@ impl Node {
         };
 
         let id = utils::generate_node_id(self_ip.to_string());
-        let ip = SocketAddr::new(IpAddr::V4(Ipv4Addr::from_str(GOSSIP_ADDRESS).unwrap()), GOSSIP_ADDRESS_PORT);
+        let ip = SocketAddr::new(IpAddr::V4(Ipv4Addr::from_str(LOCAL_ADDRESS).unwrap()), GOSSIP_ADDRESS_PORT);
         let service = GossipService::new_with_defaults(ip);
 
         Node{

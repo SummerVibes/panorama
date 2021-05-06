@@ -74,7 +74,7 @@ pub fn get_closest_peers(self_ip: IpAddr, sd_socket: UdpSocket) -> Result<Vec<Pe
                 //not self
                 if src.ip() != self_ip {
                     src.set_port(GOSSIP_ADDRESS_PORT);
-                    result.push(Peer::new(src.ip().to_string()))
+                    result.push(Peer::new(src.to_string()))
                 }
             }
             _ => { error!("invalid msg: {} from {}", str, src) }
