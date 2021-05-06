@@ -1,10 +1,10 @@
-use std::net::UdpSocket;
+use std::net::{UdpSocket, Ipv4Addr, SocketAddr};
 use std::sync::Mutex;
 use std::thread;
 
 use gossip::{Update, UpdateHandler};
 
-use crate::bus::{BROADCAST_RECV, BROADCAST_SEND, GOSSIP_ADDRESS};
+use crate::bus::{BROADCAST_RECV, BROADCAST_SEND, GOSSIP_ADDRESS, GOSSIP_ADDRESS_PORT};
 use crate::bus::peer::{get_closest_peers, response_ping};
 use crate::device::DeviceType;
 use crate::device::phone::Phone;
@@ -17,6 +17,7 @@ use crate::utils::get_self_ip;
 use super::*;
 use crate::error::Error;
 use std::time::Duration;
+use std::str::FromStr;
 
 impl Node {
     pub fn create(device_type: DeviceType) -> Node{
@@ -36,7 +37,8 @@ impl Node {
         };
 
         let id = utils::generate_node_id(self_ip.to_string());
-        let service = GossipService::new_with_defaults(GOSSIP_ADDRESS.parse().unwrap());
+        let ip = SocketAddr::new(IpAddr::V4(Ipv4Addr::from_str(GOSSIP_ADDRESS).unwrap()), GOSSIP_ADDRESS_PORT);
+        let service = GossipService::new_with_defaults(ip);
 
         Node{
             id,

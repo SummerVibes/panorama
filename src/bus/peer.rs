@@ -4,7 +4,7 @@ use std::time::{Duration, SystemTime};
 use gossip::Peer;
 use serde::{Deserialize, Serialize};
 
-use crate::bus::BROADCAST_RECV;
+use crate::bus::{BROADCAST_RECV, GOSSIP_ADDRESS_PORT};
 use crate::Result;
 use crate::utils::get_broadcast_addr;
 
@@ -36,7 +36,7 @@ pub enum Ping {
 
 ///send broadcast and wait for some time, then return all response
 #[tracing::instrument]
-pub fn get_closest_peers(self_ip:IpAddr, sd_socket: UdpSocket) -> Result<Vec<Peer>> {
+pub fn get_closest_peers(self_ip: IpAddr, sd_socket: UdpSocket) -> Result<Vec<Peer>> {
     let broadcast_addr = format!("{}:{}", get_broadcast_addr(self_ip.to_string())?, BROADCAST_RECV);
 
     let data = serde_json::to_string(&Ping::PING)?;
@@ -60,7 +60,7 @@ pub fn get_closest_peers(self_ip:IpAddr, sd_socket: UdpSocket) -> Result<Vec<Pee
 
         sd_socket.set_read_timeout(Some(left_time))?;
         let timer = SystemTime::now();
-        let (amt, src) = match sd_socket.recv_from(buf) {
+        let (amt, mut src) = match sd_socket.recv_from(buf) {
             Ok(data) => data,
             Err(_) => {
                 info!("time used: {:?} ", SystemTime::now().duration_since(timer).unwrap());
@@ -73,7 +73,8 @@ pub fn get_closest_peers(self_ip:IpAddr, sd_socket: UdpSocket) -> Result<Vec<Pee
             Ping::PONG => {
                 //not self
                 if src.ip() != self_ip {
-                    result.push(Peer::new(src.to_string()))
+                    src.set_port(GOSSIP_ADDRESS_PORT);
+                    result.push(Peer::new(src.ip().to_string()))
                 }
             }
             _ => { error!("invalid msg: {} from {}", str, src) }
