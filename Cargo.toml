@@ -15,7 +15,6 @@ clap = { version = "3.0.0-beta.2", features = ["yaml"] }
 serde = {version = "1.0.123", features = ["derive"]}
 serde_json = "1.0.62"
 anyhow = "1.0.38"
-#pnet = "0.27.2"
 crdts = "6.3.3"
 gossip = "0.0.3"
 tokio = { version = "0.2", features = ["full"] }
@@ -29,3 +28,10 @@ rust-crypto = "0.2"
 thiserror = "1"
 futures = "0.3"
 #crossterm = "0.19"
+
+[dev-dependencies]
+criterion = {version="0.3", features=["html_reports","async_futures"]}
+
+[[bench]]
+name = "my_benchmark"
+harness = false

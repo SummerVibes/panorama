@@ -1,19 +1,20 @@
 //! data access module
 
 pub mod node;
+pub mod store;
 
 use crdts::{Map, CmRDT, CvRDT, Orswot};
 use rand::Rng;
 use crate::device::Device;
 use std::net::IpAddr;
 use gossip::GossipService;
-use std::sync::{Arc, Mutex};
+use std::sync::{Arc, RwLock};
 
 pub type Ability = String;
 pub type URL = String;
 pub type NodeId = u64;
 pub type AbilitiesMap = Map<Ability, Orswot<URL, NodeId>, NodeId>;
-pub type ArcAbilitiesMap = Arc<Mutex<AbilitiesMap>>;
+pub type ArcAbilitiesMap = Arc<RwLock<AbilitiesMap>>;
 
 pub enum AllAbility {
     TakePhoto,
@@ -34,6 +35,7 @@ impl ToString for AllAbility{
 #[derive(Default,Debug,Clone)]
 pub struct AbilitiesStore {
     id: NodeId,
+    urls: Vec<UrlEntry>,
     map: ArcAbilitiesMap
 }
 
@@ -48,7 +50,7 @@ pub struct Node{
     pub service: GossipService<AbilitiesStore>
 }
 
-#[derive(Debug)]
+#[derive(Debug,Clone)]
 pub struct UrlEntry {
     pub(crate) url: String,
     pub(crate) ability: String

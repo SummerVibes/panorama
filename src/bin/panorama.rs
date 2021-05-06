@@ -43,6 +43,5 @@ async fn main(){
         srv.await.unwrap();
     }));
     //register service
-    node.register().unwrap();
     ex_command(&mut node).await;
 }

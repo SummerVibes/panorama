@@ -18,6 +18,7 @@ pub async fn ex_command(node: &mut Node) {
         let mut parts = input.trim().split_whitespace();
         let command = parts.next().unwrap_or("");
         let args = parts;
+        let client = Client::default();
         match command {
             "show" => {
                 store.print();
@@ -29,7 +30,6 @@ pub async fn ex_command(node: &mut Node) {
                     let res = store.get_url(str.to_string());
                     match res {
                         Ok(url) => {
-                            let client = Client::default();
                             let res = client
                                 .get(url.clone())    // <- Create request builder
                                 .send().await;                        // <- Send http request
