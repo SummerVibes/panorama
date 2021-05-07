@@ -53,7 +53,7 @@ impl Node {
         info!("find closest peers: {:?}", peers);
         // start the gossip service
         self.service.start(Box::new(|| Some(peers)), Box::new(self.store.clone())).unwrap();
-        // self.register().unwrap();
+        self.register().unwrap();
         Ok(())
     }
 
