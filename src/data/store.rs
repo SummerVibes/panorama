@@ -6,8 +6,8 @@ use std::sync::{RwLockWriteGuard, RwLockReadGuard};
 use std::ops::Deref;
 
 impl AbilitiesStore {
-    pub fn new(id: NodeId, urls: Vec<UrlEntry>) -> Self{
-        AbilitiesStore{ id, urls, map: Arc::new(RwLock::new(Default::default())) }
+    pub fn new(id: NodeId, urls: Vec<UrlEntry>, service: Arc<RwLock<GossipService<AbilitiesStore>>>) -> Self{
+        AbilitiesStore{ id, urls, map: Arc::new(RwLock::new(Default::default())),service }
     }
 
     fn get_mut_map(&self) -> RwLockWriteGuard<'_, AbilitiesMap> {
@@ -59,6 +59,19 @@ impl AbilitiesStore {
         serde_json::to_string(map.deref()).unwrap()
     }
 
+    pub fn exist(&self, map: &AbilitiesMap) -> bool {
+        for u in self.urls.iter() {
+            let set = map.get(&u.ability).val;
+            if set.is_none() {
+                return false;
+            }
+            if !set.unwrap().contains(&u.url).val {
+                return false;
+            }
+        }
+        true
+    }
+
     pub fn get_url(&self, a: Ability) -> Result<URL> {
         let res = self.get_map().get(&a);
         let set = &res.val.ok_or(Error::NoSuchService)?;
@@ -85,9 +98,13 @@ impl UpdateHandler for AbilitiesStore {
     fn on_update(&self, update: Update) {
         let res: AbilitiesMap = serde_json::from_slice(update.content().as_slice()).unwrap();
         info!("receive update from: {:?}", res);
-        self.merge(res);
+        self.merge(res.clone());
         //register self abilities again, to provided covered by map that received;
         self.register();
+        //if peers doesn't have self abilities, then push map to them
+        if !self.exist(&res) {
+            self.service.write().unwrap().submit(self.ser().into_bytes()).unwrap()
+        }
     }
 }
 

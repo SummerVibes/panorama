@@ -22,7 +22,7 @@ pub async fn ex_command(node: &mut Node) {
         match command {
             "show" => {
                 store.print();
-                println!("Peers:\n{:?}",node.service.peers());
+                println!("Peers:\n{:?}",node.get_service().peers());
             }
             "run" => {
                 let funcs: Vec<&str> = args.collect();

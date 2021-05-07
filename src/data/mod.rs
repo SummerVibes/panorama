@@ -32,22 +32,24 @@ impl ToString for AllAbility{
 }
 
 
-#[derive(Default,Debug,Clone)]
+#[derive(Clone)]
 pub struct AbilitiesStore {
     id: NodeId,
     urls: Vec<UrlEntry>,
-    map: ArcAbilitiesMap
+    map: ArcAbilitiesMap,
+    service: Arc<RwLock<GossipService<AbilitiesStore>>>
 }
 
 /// App Node
 
+#[derive(Clone)]
 pub struct Node{
     pub id: NodeId,
     pub addr: IpAddr,
     pub device: Arc<Box<dyn Device + Send + Sync>>,
     //store and service share AbilitiesMap
     pub store: AbilitiesStore,
-    pub service: GossipService<AbilitiesStore>
+    pub service: Arc<RwLock<GossipService<AbilitiesStore>>>
 }
 
 #[derive(Debug,Clone)]
