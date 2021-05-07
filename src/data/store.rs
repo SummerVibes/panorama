@@ -6,8 +6,8 @@ use std::sync::{RwLockWriteGuard, RwLockReadGuard};
 use std::ops::Deref;
 
 impl AbilitiesStore {
-    pub fn new(id: NodeId, urls: Vec<UrlEntry>, service: Arc<RwLock<GossipService<AbilitiesStore>>>) -> Self{
-        AbilitiesStore{ id, urls, map: Arc::new(RwLock::new(Default::default())),service }
+    pub fn new(id: NodeId, urls: Vec<UrlEntry>) -> Self{
+        AbilitiesStore{ id, urls, map: Arc::new(RwLock::new(Default::default()))}
     }
 
     fn get_mut_map(&self) -> RwLockWriteGuard<'_, AbilitiesMap> {
@@ -101,10 +101,6 @@ impl UpdateHandler for AbilitiesStore {
         self.merge(res.clone());
         //register self abilities again, to provided covered by map that received;
         self.register();
-        //if peers doesn't have self abilities, then push map to them
-        if !self.exist(&res) {
-            self.service.write().unwrap().submit(self.ser().into_bytes()).unwrap()
-        }
     }
 }
 

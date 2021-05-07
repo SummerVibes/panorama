@@ -37,19 +37,17 @@ pub struct AbilitiesStore {
     id: NodeId,
     urls: Vec<UrlEntry>,
     map: ArcAbilitiesMap,
-    service: Arc<RwLock<GossipService<AbilitiesStore>>>
 }
 
 /// App Node
 
-#[derive(Clone)]
 pub struct Node{
     pub id: NodeId,
     pub addr: IpAddr,
     pub device: Arc<Box<dyn Device + Send + Sync>>,
     //store and service share AbilitiesMap
     pub store: AbilitiesStore,
-    pub service: Arc<RwLock<GossipService<AbilitiesStore>>>
+    pub service: GossipService<AbilitiesStore>
 }
 
 #[derive(Debug,Clone)]
